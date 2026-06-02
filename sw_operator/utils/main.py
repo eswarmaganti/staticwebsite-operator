@@ -30,3 +30,7 @@ def service_needs_reconciliation(current, desired):
 
         current.spec.type != desired.spec.type,
     ])
+
+# function to identify the reconciliation needed for GW API resources
+def gateway_needs_reconciliation(current, desired) -> bool:
+    pass

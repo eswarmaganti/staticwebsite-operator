@@ -14,7 +14,10 @@ def build_deployment(name: str, spec: dict, namespace: str, owner: V1OwnerRefere
         spec = client.V1DeploymentSpec(
             replicas = spec.get('replicas', 1),
             selector = client.V1LabelSelector(
-                match_labels={"app": name}
+                match_labels={
+                    "app.kubernetes.io/name": name,
+                    "app.kubernetes.io/managed-by": "staticwebsite-operator",
+                }
             ),
             template = client.V1PodTemplateSpec(
                 metadata = client.V1ObjectMeta(
