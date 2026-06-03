@@ -1,3 +1,6 @@
+from kopf.on import probe
+from oauthlib.oauth2 import Client
+
 from sw_operator.clients.kubernetes import client
 from kubernetes.client import V1Deployment, V1OwnerReference
 
@@ -37,9 +40,30 @@ def build_deployment(name: str, spec: dict, namespace: str, owner: V1OwnerRefere
                                 client.V1ContainerPort(
                                     container_port = spec.get('targetPort'),
                                 )
-                            ]
+                            ],
+                            resources=client.V1ResourceRequirements(
+                                requests={
+                                    "cpu": spec.get('cpu', "100m"),
+                                    "memory": spec.get('memory', "128Mi"),
+                                },
+                                limits={
+                                    "cpu": spec.get('cpu', "200m"),
+                                    "memory": spec.get('memory', "256Mi"),
+                                }
+                            ),
+                            liveness_probe=client.V1Probe(
+                                http_get=client.V1HTTPGetAction(
+                                    path="/",
+                                    port=spec.get('port', 80),
+                                ),
+                                initial_delay_seconds=10,
+                                period_seconds=20,
+                            )
+
                         )
+
                     ]
+
                 )
             )
         )
