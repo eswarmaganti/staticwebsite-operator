@@ -1,0 +1,17 @@
+#
+# The manifest to deploy the staticwebsite CustomResource
+#
+---
+apiVersion: platform.eswar.dev/v1alpha1
+kind: StaticWebsite
+metadata:
+  name: my-nginx-sw
+  labels:
+    kubernetes.io/name: my-staticwebsite
+spec:
+  image: nginx:1.31-alpine
+  replicas: 2
+  port: 80
+  targetPort: 80
+  domain: portfolio.eswar.local
+
