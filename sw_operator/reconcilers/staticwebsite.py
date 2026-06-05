@@ -31,9 +31,7 @@ def reconcile_staticwebsite(spec, name, namespace, body, patch, logger):
         logger=logger
     )
 
-    reconcile_status(
-        patch=patch,
-        name=name,
-        namespace=namespace,
-        logger=logger
-    )
+    # set the initial status
+    patch.status['deploymentName'] = name
+    patch.status['serviceName'] = name
+    patch.status['phase'] = 'Progressing'
