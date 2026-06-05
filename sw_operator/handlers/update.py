@@ -7,10 +7,10 @@ from sw_operator.reconcilers.staticwebsite import reconcile_staticwebsite
 def update_staticwebsite(spec, name, namespace, patch, logger, body, **kwargs):
 
     reconcile_staticwebsite(
-        name = name,
-        namespace = namespace,
-        spec = spec,
-        body = body,
-        patch = patch,
-        logger = logger,
+        name=name,
+        namespace=namespace,
+        spec=spec,
+        body=body,
+        patch=patch,
+        logger=logger,
     )

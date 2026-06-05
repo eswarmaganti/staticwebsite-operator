@@ -8,52 +8,57 @@ from kubernetes.client import V1Deployment, V1OwnerReference
 # utility function to create the deployment specification
 def build_deployment(name: str, spec: dict, namespace: str, owner: V1OwnerReference) -> V1Deployment:
     return client.V1Deployment(
-        metadata = client.V1ObjectMeta(
-            name = name,
-            namespace = namespace,
+        metadata=client.V1ObjectMeta(
+            name=name,
+            namespace=namespace,
             owner_references=[owner],
+            labels={
+                'app.kubernetes.io/name': name,
+                'app.kubernetes.io/managed-by': 'staticwebsite-operator',
+                'app.kubernetes.io/component' : 'staticwebsite'
+            }
 
         ),
-        spec = client.V1DeploymentSpec(
-            replicas = spec.get('replicas', 1),
-            selector = client.V1LabelSelector(
+        spec=client.V1DeploymentSpec(
+            replicas=spec.get('replicas', 1),
+            selector=client.V1LabelSelector(
                 match_labels={
-                    "app.kubernetes.io/name": name,
-                    "app.kubernetes.io/managed-by": "staticwebsite-operator",
+                    'app.kubernetes.io/name': name,
+                    'app.kubernetes.io/managed-by': 'staticwebsite-operator',
                 }
             ),
-            template = client.V1PodTemplateSpec(
-                metadata = client.V1ObjectMeta(
+            template=client.V1PodTemplateSpec(
+                metadata=client.V1ObjectMeta(
                     name=name,
                     labels={
-                        "app.kubernetes.io/name": name,
-                        "app.kubernetes.io/managed-by": "staticwebsite-operator",
-                        "app.kubernetes.io/component" : "staticwebsite"
+                        'app.kubernetes.io/name': name,
+                        'app.kubernetes.io/managed-by': 'staticwebsite-operator',
+                        'app.kubernetes.io/component' : 'staticwebsite'
                     },
                 ),
-                spec = client.V1PodSpec(
-                    containers = [
+                spec=client.V1PodSpec(
+                    containers=[
                         client.V1Container(
-                            name = name,
-                            image = spec.get('image'),
-                            ports = [
+                            name=name,
+                            image=spec.get('image'),
+                            ports=[
                                 client.V1ContainerPort(
-                                    container_port = spec.get('targetPort'),
+                                    container_port=spec.get('targetPort'),
                                 )
                             ],
                             resources=client.V1ResourceRequirements(
                                 requests={
-                                    "cpu": spec.get('cpu', "100m"),
-                                    "memory": spec.get('memory', "128Mi"),
+                                    'cpu': spec.get('cpu', '100m'),
+                                    'memory': spec.get('memory', '128Mi'),
                                 },
                                 limits={
-                                    "cpu": spec.get('cpu', "200m"),
-                                    "memory": spec.get('memory', "256Mi"),
+                                    'cpu': spec.get('cpu', '200m'),
+                                    'memory': spec.get('memory', '256Mi'),
                                 }
                             ),
                             liveness_probe=client.V1Probe(
                                 http_get=client.V1HTTPGetAction(
-                                    path="/",
+                                    path='/',
                                     port=spec.get('port', 80),
                                 ),
                                 initial_delay_seconds=10,
