@@ -1,0 +1,22 @@
+#
+# ClusterRole Binding to bind the ServiceAccount and the ClusterRole for staticwebsite-operator
+#
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: staticwebsite-operator
+  labels:
+    app.kubernetes.io/name: staticwebsite-operator
+    app.kubernetes.io/version: v1alpha1
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/part-of: staticwebsite-platform
+    app.kubernetes.io/component: controller
+subjects:
+  - kind: ServiceAccount
+    name: staticwebsite-operator
+    namespace: operators
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: staticwebsite-operator

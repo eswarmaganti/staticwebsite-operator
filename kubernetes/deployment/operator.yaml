@@ -1,0 +1,53 @@
+#
+# The StaticWebsite operator deployment manifest to handle the lifecycle of staticwebsite CR
+#
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staticwebsite-operator
+  namespace: operators
+  labels:
+    app.kubernetes.io/name: staticwebsite-operator
+    app.kubernetes.io/version: v1alpha1
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/part-of: staticwebsite-platform
+    app.kubernetes.io/managed-by: kubectl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      kubernetes.io/name: staticwebsite-operator
+  template:
+    metadata:
+      name: staticwebsite-pod
+      labels:
+        app.kubernetes.io/name: staticwebsite-operator
+        app.kubernetes.io/version: v1alpha1
+        app.kubernetes.io/managed-by: kubectl
+        app.kubernetes.io/part-of: staticwebsite-platform
+        app.kubernetes.io/component: controller
+    spec:
+      serviceAccountName: staticwebsite-operator
+      containers:
+        - name: staticwebsite
+          image: kubernetes.io/eswarmaganti/sw-operator:v1alpha1
+          ports:
+            - containerPort: 80
+
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+

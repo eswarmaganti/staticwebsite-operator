@@ -1,0 +1,88 @@
+#
+# ClusterRole to manager the permissions for staticwebsite operator
+#
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: staticwebsite-operator
+  labels:
+    app.kubernetes.io/name: staticwebsite-operator
+    app.kubernetes.io/version: v1alpha1
+    app.kubernetes.io/managed-by: kubectl
+    app.kubernetes.io/part-of: staticwebsite-platform
+    app.kubernetes.io/component: controller
+rules:
+  # Rule for StaticWebsite CR
+  - apiGroups:
+      - platform.eswar.dev
+    resources:
+      - staticwebsites
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+
+  # Rule for StaticWebsite Status subresource
+  - apiGroups:
+      - platform.eswar.dev
+    resources:
+      - staticwebsites/status
+    verbs:
+      - get
+      - patch
+      - update
+
+  # Rule for deployments
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Rule for services
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Rule for Gateway resources
+  - apiGroups:
+      - gateway.networking.kubernetes.io
+    resources:
+      - gateways
+      - httproutes
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  #Rule for events
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch

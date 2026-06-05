@@ -5,7 +5,7 @@
 apiVersion: platform.eswar.dev/v1alpha1
 kind: StaticWebsite
 metadata:
-  name: my-nginx-sw
+  name: portfolio
   labels:
     kubernetes.io/name: my-staticwebsite
 spec:

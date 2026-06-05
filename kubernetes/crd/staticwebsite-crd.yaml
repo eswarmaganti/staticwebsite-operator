@@ -90,7 +90,7 @@ spec:
           jsonPath: .spec.image
         - name: Replicas
           type: integer
-          jsonPath: .spec.readyReplicas
+          jsonPath: .status.readyReplicas
         - name: Domain
           type: string
           jsonPath: .spec.domain
