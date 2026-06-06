@@ -1,17 +1,24 @@
 name: CI Pipeline to build StaticWebsite Operator Image
 run-name: Building the ${{ github.repository }} by ${{ github.actor }}
-on: [push]
-#  push:
-#    branches:
-#      - main
+#on: [push]
+on:
+  push:
+    branches:
+      - main
 jobs:
   CI:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v6
-      - name: Perform Unit Tests
-        run: echo "Running Unit Tests"
+      - name: Setup Python Environment
+        uses: actions/setup-python@v5
+      - name: Install the python dependencies
+        run: python3 -m pip install -r requirements.txt -r requirements-dev.txt
+      - name: Run Python Unit Tests
+        run: python3 -m pytest --cov=sw_operator --cov-report=xml
+      - name: Test Coverage Badge
+        uses: codecov/codecov-action@v4
       - name: Static Code Analysis
         run: echo "Running Static Code Analysis"
       - name: Set up QEMU
