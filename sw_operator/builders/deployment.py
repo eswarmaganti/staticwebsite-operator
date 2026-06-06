@@ -59,7 +59,7 @@ def build_deployment(name: str, spec: dict, namespace: str, owner: V1OwnerRefere
                             liveness_probe=client.V1Probe(
                                 http_get=client.V1HTTPGetAction(
                                     path='/',
-                                    port=spec.get('port', 80),
+                                    port=spec.get('targetPort', 80),
                                 ),
                                 initial_delay_seconds=10,
                                 period_seconds=20,
