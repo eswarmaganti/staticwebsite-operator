@@ -1,5 +1,12 @@
 # shared fixtures for all tests
 import pytest
+from unittest.mock import MagicMock, patch
+
+# patch the kubernetes config loaders before any sw_operator module is imported
+# this prevents "No configuration found" errors in CI where no kubernetes cluster exists
+
+patch("kubernetes.config.load_kube_config", return_value=None).start()
+patch("kubernetes.config.load_incluster_config", return_value=None).start()
 
 @pytest.fixture
 def base_spec() -> dict:
