@@ -30,4 +30,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: docker.io/${{ github.repository_owner }}/${{ var.IMAGE_NAME }}:${{ github.run_number }}
+          tags: docker.io/${{ github.repository_owner }}/${{ vars.IMAGE_NAME }}:${{ github.run_number }}
