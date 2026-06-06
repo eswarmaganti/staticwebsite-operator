@@ -7,7 +7,7 @@ kind: StaticWebsite
 metadata:
   name: portfolio
   labels:
-    kubernetes.io/name: my-staticwebsite
+    kubernetes.io/name: portfolio
 spec:
   image: nginx:1.31-alpine
   replicas: 2
