@@ -5,7 +5,7 @@ on:
     branches:
       - main
 jobs:
-  CI:
+  CI-Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -52,9 +52,9 @@ jobs:
           tags: docker.io/${{ github.repository_owner }}/${{ vars.IMAGE_NAME }}:latest
 
       - name: Run Trivy Image Scan
-        uses: aquasecurity/trivy-action@v1
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
-          image-ref: docker.io/${{ github.repository_owner }}/${{ vars.IMAGE_NAME }}:latest
+          image-ref: docker.io/${{ github.repository_owner }}/${{ vars.IMAGE_NAME }}:${{github.run_number}}
           exit-code: "1"
           format: "table"
           severity: "CRITICAL,HIGH"
