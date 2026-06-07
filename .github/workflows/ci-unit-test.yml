@@ -1,0 +1,28 @@
+name: CI Workflow to perform unit tests
+run-name: CI Unit Test workflow triggered by ${{github.actor}}
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+jobs:
+  CI-Unit-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v6
+
+      - name: Setup python environment
+        uses: actions/setup-python@v5
+
+      - name: Install python dependencies
+        run: python3 -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run Python Pytest Unit Tests
+        run: python3 -m pytest --cov=sw_operator --cov-report=xml
+
+      - name: Test coverage badge
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Static Code Analysis
+        run: echo "Running static code analysis ..."
