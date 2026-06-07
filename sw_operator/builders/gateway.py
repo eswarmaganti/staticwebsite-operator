@@ -9,6 +9,11 @@ def build_gateway(name: str, namespace: str, spec: dict, owner: V1OwnerReference
         'metadata': {
             'name': name,
             'namespace': namespace,
+            'labels': {
+                'app.kubernetes.io/name': name,
+                'app.kubernetes.io/managed-by': 'staticwebsite-operator',
+                'app.kubernetes.io/component': 'staticwebsite'
+            },
             'ownerReferences': [
                 client.ApiClient().sanitize_for_serialization(owner)
             ]
@@ -37,6 +42,11 @@ def build_httproute(name: str, namespace: str, spec: dict, owner: V1OwnerReferen
         'metadata': {
             'name': name,
             'namespace': namespace,
+            'labels': {
+                'app.kubernetes.io/name': name,
+                'app.kubernetes.io/managed-by': 'staticwebsite-operator',
+                'app.kubernetes.io/component': 'staticwebsite'
+            },
             'ownerReferences': [
                 client.ApiClient().sanitize_for_serialization(owner)
             ]
