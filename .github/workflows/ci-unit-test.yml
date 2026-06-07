@@ -1,6 +1,8 @@
 name: CI Workflow to perform unit tests
 run-name: CI Unit Test workflow triggered by ${{github.actor}}
-on: [push]
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
 jobs:
   CI-Unit-Tests:
     runs-on: ubuntu-latest
