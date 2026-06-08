@@ -1,202 +1,211 @@
 # Kubernetes StaticWebsite Operator 
 
-> Building a kubernetes operator to handle the deployment and lifecycle of a static website using nginx image
+## The project structure
 
-## The Operator project structure
-```bash
- (base) eswarmaganti~$tree -I '__pycache__' sw_operator
-
-
-sw_operator
-├── __init__.py
-├── builders
+```commandline
+.
+├── Dockerfile
+├── README.md
+├── kubernetes
+│   ├── crd
+│   │   └── staticwebsite-crd.yaml
+│   ├── deployment
+│   │   ├── operator.yaml
+│   │   └── secret.yaml
+│   ├── rbac
+│   │   ├── clusterrole.yaml
+│   │   ├── clusterrolebinding.yaml
+│   │   └── serviceaccount.yaml
+│   └── sample
+│       └── website.yaml
+├── pytest.ini
+├── requirements-dev.txt
+├── requirements.txt
+├── sw_operator
 │   ├── __init__.py
-│   ├── configmap.py
-│   ├── deployment.py
-│   ├── gateway.py
-│   ├── owner_reference.py
-│   └── service.py
-├── clients
-│   ├── __init__.py
-│   └── kubernetes.py
-├── config.py
-├── handlers
-│   ├── __init__.py
-│   ├── create.py
-│   └── update.py
-├── main.py
-├── reconcilers
-│   ├── __init__.py
-│   ├── deployment.py
-│   ├── service.py
-│   ├── staticwebsite.py
-│   └── status.py
-└── utils
+│   ├── builders
+│   │   ├── __init__.py
+│   │   ├── configmap.py
+│   │   ├── deployment.py
+│   │   ├── gateway.py
+│   │   ├── owner_reference.py
+│   │   └── service.py
+│   ├── clients
+│   │   ├── __init__.py
+│   │   └── kubernetes.py
+│   ├── config.py
+│   ├── handlers
+│   │   ├── __init__.py
+│   │   └── main.py
+│   ├── main.py
+│   ├── reconcilers
+│   │   ├── __init__.py
+│   │   ├── deployment.py
+│   │   ├── gateway.py
+│   │   ├── service.py
+│   │   ├── staticwebsite.py
+│   │   └── status.py
+│   └── utils
+│       ├── __init__.py
+│       └── main.py
+└── tests
     ├── __init__.py
-    └── main.py
-
-6 directories, 21 files
+    ├── builders
+    │   ├── __init__.py
+    │   ├── test_deployment.py
+    │   ├── test_gateway.py
+    │   └── test_service.py
+    └── conftest.py
 ```
 
-## Testing the operator package in local
+## Deploying the operator locally
 
-1. Run the operator package using `kopf` commandline
-```bash
-(env) (base) eswarmaganti~$kopf run -m sw_operator.main
-/Users/eswarmaganti/Developer/Projects/DevOps/staticwebsite-operator/env/lib/python3.12/site-packages/kopf/_core/reactor/running.py:179: FutureWarning: Absence of either namespaces or cluster-wide flag will become an error soon. For now, switching to the cluster-wide mode for backward compatibility.
-  warnings.warn("Absence of either namespaces or cluster-wide flag will become an error soon."
-[2026-06-02 06:29:37,720] kopf._core.engines.a [INFO    ] Initial authentication has been initiated.
-[2026-06-02 06:29:37,723] kopf.activities.auth [INFO    ] Activity 'login_via_client' succeeded.
-[2026-06-02 06:29:37,723] kopf._core.engines.a [INFO    ] Initial authentication has finished.
+### Prerequisites
+- A local Kubernetes cluster running (minikube/kind)
+- `kubectl` installed and configured against your cluster
+- `python 3.8+` and `pip` available
+- Clone the source code repo
+```commandline
+git clone https://github.com/eswarmaganti/staticwebsite-operator.git
+cd staticwebsite-operator
+```
+- Set up the python virtual environment
+```commandline
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+### Install the CRD
+```commandline
+$ kubectl apply -f kubernetes/crd/staticwebsite-crd.yaml 
+customresourcedefinition.apiextensions.k8s.io/staticwebsites.platform.eswar.dev created
+
+$kubectl get crd | grep static
+staticwebsites.platform.eswar.dev                     2026-06-06T02:00:49Z
 ```
 
-2. Deploy the `StaticWebsite` custom resource
+### Running the Operator locally
+```commandline
+$ export PYTHONPATH=$(pwd)
 
-- The `StaticWebsite` CRD
-```yaml
----
-apiVersion: apiextensions.k8s.io/v1 # the api version for CRDs
-kind: CustomResourceDefinition
-metadata:
-  name: staticwebsites.platform.eswar.dev # it should be <plural> + <api group>
-
-spec:
-  group: platform.eswar.dev # The group name of the CR
-  scope: Namespaced # the CR exists inside a namespace
-  names: # defines the kubectl behaviour
-    plural: staticwebsites
-    singular: staticwebsite
-    kind: StaticWebsite
-    shortNames:
-      - sw
-  versions:
-    - name: v1alpha1
-      served: true # the API server serves this version
-      storage: true # the version stored in etcd
-
-      schema: # the CR schema for validation
-        openAPIV3Schema:
-          type: object # root object - the CR is a object
-          properties:
-
-            spec:
-              type: object
-              properties:
-                image:
-                  type: string
-                replicas:
-                  type: integer
-                  minimum: 1
-                  maximum: 10
-                domain:
-                  type: string
-                port:
-                  type: integer
-                  minimum: 1
-                  maximum: 65535
-                targetPort:
-                  type: integer
-                  minimum: 1
-                  maximum: 65535
-              required: # mandatory fields allowed
-                - image
-                - replicas
-                - port
-                - targetPort
-
-            status:
-              type: object
-              properties:
-                phase:
-                  type: string
-                deploymentName:
-                  type: string
-                serviceName:
-                  type: string
-
-      additionalPrinterColumns: # useful to specify which fields to be displayed in the output of `kubectl get` commands
-        - name: Image
-          type: string
-          jsonPath: .spec.image
-        - name: Replicas
-          type: integer
-          jsonPath: .spec.replicas
-        - name: Domain
-          type: string
-          jsonPath: .spec.domain
-```
-- The CR manifest
-```yaml
-#
-# The yaml manifest to create a custom resource for StaticWebsite CRD
-#
----
-apiVersion: platform.eswar.dev/v1alpha1
-kind: StaticWebsite
-metadata:
-  name: my-nginx-sw
-spec:
-  image: nginx:1.31-alpine
-  replicas: 2
-  port: 80
-  targetPort: 80
-  domain: portfolio.eswar.dev
+$ kopf run -m sw_operator.main --all-namespaces
+[2026-06-06 07:33:32,814] kopf.activities.star [INFO    ] Activity 'configure' succeeded.
+[2026-06-06 07:33:32,815] kopf._core.engines.a [INFO    ] Initial authentication has been initiated.
+[2026-06-06 07:33:32,817] kopf.activities.auth [INFO    ] Activity 'login_via_client' succeeded.
+[2026-06-06 07:33:32,817] kopf._core.engines.a [INFO    ] Initial authentication has finished.
 ```
 
-```bash
-(env) (base) eswarmaganti~$kubectl apply -f website.yaml                                                
-staticwebsite.platform.eswar.dev/my-nginx-sw created
-(env) (base) eswarmaganti~$kubectl get all                                                              
-NAME                               READY   STATUS    RESTARTS   AGE
-pod/my-nginx-sw-6d7cf86d55-n7m26   1/1     Running   0          2s
-pod/my-nginx-sw-6d7cf86d55-zrbvm   1/1     Running   0          2s
-
-NAME                  TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
-service/my-nginx-sw   NodePort   10.96.99.40   <none>        80:31203/TCP   2s
-
-NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/my-nginx-sw   2/2     2            2           2s
-
-NAME                                     DESIRED   CURRENT   READY   AGE
-replicaset.apps/my-nginx-sw-6d7cf86d55   2         2         2       2s
+### Deploy a sample CR
+```commandline
+$ kubectl apply -f kubernetes/sample/website.yaml
+staticwebsite.platform.eswar.dev/portfolio created
 ```
-3. Validate the logs from operator
-```bash
-[2026-06-02 06:29:45,880] kopf.objects         [INFO    ] [test/my-nginx-sw] Creating the deployment: my-nginx-sw
-[2026-06-02 06:29:45,888] kopf.objects         [INFO    ] [test/my-nginx-sw] Created the deployment: my-nginx-sw
-[2026-06-02 06:29:45,897] kopf.objects         [INFO    ] [test/my-nginx-sw] Creating the service my-nginx-sw
-[2026-06-02 06:29:45,919] kopf.objects         [INFO    ] [test/my-nginx-sw] Created the service my-nginx-sw
-[2026-06-02 06:29:45,928] kopf.objects         [INFO    ] [test/my-nginx-sw] Handler 'create_staticwebsite' succeeded.
-[2026-06-02 06:29:45,928] kopf.objects         [INFO    ] [test/my-nginx-sw] Creation is processed: 1 succeeded; 0 failed.
-[2026-06-02 06:29:45,963] kopf.objects         [WARNING ] [test/my-nginx-sw] Merge-patching finished with inconsistencies: (('remove', ('status', 'availableReplicas'), 0, None), ('remove', ('status', 'readyReplicas'), 0, None), ('remove', ('status', 'replicas'), 0, None))
+
+### Watch the operator logs
+```commandline
+# Reconciler runs — child resources created in sequence
+[2026-06-06 07:40:07,570] kopf.objects         [INFO    ] [test/portfolio] Deployment: portfolio created
+[2026-06-06 07:40:07,615] kopf.objects         [INFO    ] [test/portfolio] Service: portfolio created
+[2026-06-06 07:40:07,676] kopf.objects         [INFO    ] [test/portfolio] Gateway: portfolio created
+[2026-06-06 07:40:07,714] kopf.objects         [INFO    ] [test/portfolio] HTTPRoute: portfolio created
+
+# Main handler completes successfully
+[2026-06-06 07:40:07,715] kopf.objects         [INFO    ] [test/portfolio] Handler 'create_staticwebsite' succeeded.
+[2026-06-06 07:40:07,716] kopf.objects         [INFO    ] [test/portfolio] Creation is processed: 1 succeeded; 0 failed.
+
+# Field watcher fires as first pod becomes available (1/2 ready)
+# Phase is still 'Progressing' - not all replicas are available yet
+[2026-06-06 07:40:09,581] kopf.objects         [INFO    ] [test/portfolio] Syncing status: phase=Progressing, available/desired=1/2, ready=1
+[2026-06-06 07:40:09,607] kopf.objects         [INFO    ] [test/portfolio] CR: portfolio Status sync is successfully completed
+[2026-06-06 07:40:09,607] kopf.objects         [INFO    ] [test/portfolio] Handler 'status/status.availableReplicas' succeeded.
+[2026-06-06 07:40:09,607] kopf.objects         [INFO    ] [test/portfolio] Creation is processed: 1 succeeded; 0 failed.
+
+# Field watcher fires again as second pod becomes available (2/2 ready)
+# Phase transitions to 'Ready' - desired state fully achieved
+[2026-06-06 07:40:09,625] kopf.objects         [INFO    ] [test/portfolio] Syncing status: phase=Ready, available/desired=2/2, ready=2
+[2026-06-06 07:40:09,642] kopf.objects         [INFO    ] [test/portfolio] CR: portfolio Status sync is successfully completed
+[2026-06-06 07:40:09,643] kopf.objects         [INFO    ] [test/portfolio] Handler 'status/status.availableReplicas' succeeded.
+[2026-06-06 07:40:09,644] kopf.objects         [INFO    ] [test/portfolio] Updating is processed: 1 succeeded; 0 failed.
 ```
-4. Validate the patch operation on the Custom Resource
-```bash
-(env) (base) eswarmaganti~$kubectl patch sw/my-nginx-sw --type=merge --patch '{"spec": {"replicas": 3}}'
-staticwebsite.platform.eswar.dev/my-nginx-sw patched
-(env) (base) eswarmaganti~$kubectl get all                                                              
-NAME                               READY   STATUS    RESTARTS   AGE
-pod/my-nginx-sw-6d7cf86d55-n7m26   1/1     Running   0          37s
-pod/my-nginx-sw-6d7cf86d55-wtmnh   1/1     Running   0          32s
-pod/my-nginx-sw-6d7cf86d55-zrbvm   1/1     Running   0          37s
 
-NAME                  TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)        AGE
-service/my-nginx-sw   NodePort   10.96.99.40   <none>        80:31203/TCP   37s
+### Verify the child resources
 
-NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/my-nginx-sw   3/3     3            3           37s
+```commandline
+$ kubectl get all -n test -l app.kubernetes.io/managed-by=staticwebsite-operator
+NAME                             READY   STATUS    RESTARTS   AGE
+pod/portfolio-7bf55f9d76-cq9pq   1/1     Running   0          17m
+pod/portfolio-7bf55f9d76-k6kd9   1/1     Running   0          17m
 
-NAME                                     DESIRED   CURRENT   READY   AGE
-replicaset.apps/my-nginx-sw-6d7cf86d55   3         3         3       37s
+NAME                TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+service/portfolio   NodePort   10.96.230.79   <none>        80:31321/TCP   17m
+
+NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/portfolio   2/2     2            2           17m
+
+NAME                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/portfolio-7bf55f9d76   2         2         2       17m
+
+$ kubectl get httproute,gateway -n test
+NAME                                            HOSTNAMES                   AGE
+httproute.gateway.networking.k8s.io/portfolio   ["portfolio.eswar.local"]   18m
+
+NAME                                          CLASS   ADDRESS   PROGRAMMED   AGE
+gateway.gateway.networking.k8s.io/portfolio   nginx             True         18m
 ```
-5. Validate the logs from operator for patch operation
-```bash
-[2026-06-02 06:29:50,899] kopf.objects         [INFO    ] [test/my-nginx-sw] Deployment: my-nginx-sw needs reconciliation
-[2026-06-02 06:29:50,909] kopf.objects         [INFO    ] [test/my-nginx-sw] Deployment: my-nginx-sw reconciled
-[2026-06-02 06:29:50,910] kopf.objects         [INFO    ] [test/my-nginx-sw] Created the deployment: my-nginx-sw
-[2026-06-02 06:29:50,914] kopf.objects         [INFO    ] [test/my-nginx-sw] Reconciling the service my-nginx-sw
-[2026-06-02 06:29:50,914] kopf.objects         [INFO    ] [test/my-nginx-sw] Reconciled the service my-nginx-sw
-[2026-06-02 06:29:50,918] kopf.objects         [INFO    ] [test/my-nginx-sw] Handler 'update_staticwebsite' succeeded.
-[2026-06-02 06:29:50,918] kopf.objects         [INFO    ] [test/my-nginx-sw] Updating is processed: 1 succeeded; 0 failed.
-[2026-06-02 06:29:50,938] kopf.objects         [WARNING ] [test/my-nginx-sw] Merge-patching finished with inconsistencies: (('remove', ('status', 'availableReplicas'), 2, None), ('remove', ('status', 'readyReplicas'), 2, None), ('remove', ('status', 'replicas'), 2, None))
+### Check the CR status
+```commandline
+$kubectl get sw/portfolio -n test
+NAME        IMAGE               REPLICAS   DOMAIN                  PHASE   AGE
+portfolio   nginx:1.31-alpine   2          portfolio.eswar.local   Ready   15s
+```
+
+### Update Scenario — Scaling Replicas from 2 to 3
+```commandline
+$ kubectl patch sw/portfolio --type merge -p '{"spec": {"replicas": 3}}' -n test
+staticwebsite.platform.eswar.dev/portfolio patched
+```
+
+#### Operator logs
+```commandline
+# Reconciler runs — all child resources are patched to reflect the new desired state
+# Notice "reconciled" instead of "created" — this is the idempotency pattern:
+# resources already exist, so the 409 conflict path patches them instead of creating
+[2026-06-06 08:08:29,219] kopf.objects         [INFO    ] [test/portfolio] Deployment: portfolio reconciled
+[2026-06-06 08:08:29,258] kopf.objects         [INFO    ] [test/portfolio] Service: portfolio reconciled
+[2026-06-06 08:08:29,316] kopf.objects         [INFO    ] [test/portfolio] Gateway: portfolio reconciled
+[2026-06-06 08:08:29,342] kopf.objects         [INFO    ] [test/portfolio] HTTPRoute: portfolio reconciled
+
+# Main handler completes - reconciliation took under 200ms
+[2026-06-06 08:08:29,343] kopf.objects         [INFO    ] [test/portfolio] Handler 'create_staticwebsite' succeeded.
+[2026-06-06 08:08:29,343] kopf.objects         [INFO    ] [test/portfolio] Updating is processed: 1 succeeded; 0 failed.
+
+# Field watcher fires again as third pod becomes available (3/3 ready)
+# Phase transitions to 'Ready' - desired state fully achieved
+[2026-06-06 08:08:30,130] kopf.objects         [INFO    ] [test/portfolio] Syncing status: phase=Ready, available/desired=3/3, ready=3
+[2026-06-06 08:08:30,152] kopf.objects         [INFO    ] [test/portfolio] CR: portfolio Status sync is successfully completed
+[2026-06-06 08:08:30,153] kopf.objects         [INFO    ] [test/portfolio] Handler 'status/status.availableReplicas' succeeded.
+[2026-06-06 08:08:30,153] kopf.objects         [INFO    ] [test/portfolio] Updating is processed: 1 succeeded; 0 failed.
+```
+
+#### Verify the running pods
+```commandline
+$ kubectl get pods -n test -l app.kubernetes.io/managed-by=staticwebsite-operator
+NAME                         READY   STATUS    RESTARTS   AGE
+portfolio-7bf55f9d76-7drqm   1/1     Running   0          3m44s
+portfolio-7bf55f9d76-7jhlz   1/1     Running   0          3m44s
+portfolio-7bf55f9d76-jgs95   1/1     Running   0          3m5s
+```
+
+### Delete scenario
+```commandline
+$ kubectl delete sw/portfolio -n test
+staticwebsite.platform.eswar.dev "portfolio" deleted from test namespace
+```
+
+```commandline
+$ kubectl get all -n test -l app.kubernetes.io/managed-by=staticwebsite-operator
+No resources found in test namespace.
+
+$ kubectl get httproute,gateway -n test
+No resources found in test namespace.
 ```
