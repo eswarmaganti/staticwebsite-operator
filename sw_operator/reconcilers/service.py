@@ -25,8 +25,8 @@ def reconcile_service(name, namespace, spec, owner, logger) -> None:
 
     try:
         core_v1.create_namespaced_service(
-            body=desired,
-            namespace=namespace
+            namespace=namespace,
+            body=desired
         )
         logger.info(f'Service: {name} created')
     except ApiException as e:
