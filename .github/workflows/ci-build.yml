@@ -1,4 +1,4 @@
-name: CI Pipeline to build StaticWebsite Operator Image
+name: ci-build
 run-name: Building the ${{ github.repository }} by ${{ github.actor }}
 on:
   push:

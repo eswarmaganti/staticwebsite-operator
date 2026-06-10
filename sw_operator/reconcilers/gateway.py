@@ -1,32 +1,26 @@
 from kubernetes.client import V1OwnerReference, ApiException
-from sw_operator.clients.kubernetes import client
 from sw_operator.builders.gateway import build_httproute, build_gateway
+from sw_operator.clients.kubernetes import custom_api
 import kopf
+# static constants
+GROUP = "gateway.networking.k8s.io"
+VERSION = "v1"
 
 def reconcile_gateway(name: str, namespace: str, spec: dict, owner: V1OwnerReference, logger) -> None:
 
-    # static constants
-    GROUP = "gateway.networking.k8s.io"
-    VERSION = "v1"
+    reconcile_gateway_resource(name=name, namespace=namespace, spec=spec, owner=owner, logger=logger)
+    reconcile_httproute_resource(name=name, namespace=namespace, spec=spec, owner=owner, logger=logger)
 
-    custom_objects_api=client.CustomObjectsApi()
-
+def reconcile_gateway_resource(name: str, namespace: str, spec: dict, owner: V1OwnerReference, logger):
+    # reconciliation logic for Gateway resource
     desired_gw = build_gateway(
         name=name,
         namespace=namespace,
         spec=spec,
         owner=owner,
     )
-    desired_route = build_httproute(
-        name=name,
-        namespace=namespace,
-        spec=spec,
-        owner=owner,
-    )
-
-    # reconciliation logic for Gateway resource
     try:
-        custom_objects_api.create_namespaced_custom_object(
+        custom_api.create_namespaced_custom_object(
             namespace=namespace,
             group=GROUP,
             version=VERSION,
@@ -37,7 +31,7 @@ def reconcile_gateway(name: str, namespace: str, spec: dict, owner: V1OwnerRefer
 
     except ApiException as e:
         if e.status == 409:
-            custom_objects_api.patch_namespaced_custom_object(
+            custom_api.patch_namespaced_custom_object(
                 name=name,
                 namespace=namespace,
                 group=GROUP,
@@ -49,9 +43,16 @@ def reconcile_gateway(name: str, namespace: str, spec: dict, owner: V1OwnerRefer
         else:
             raise kopf.TemporaryError(f"Failed to reconcile gateway: {e}", delay=10)
 
+def reconcile_httproute_resource(name: str, namespace: str, spec: dict, owner: V1OwnerReference, logger):
     # reconciliation logic for HTTPRoute resource
+    desired_route = build_httproute(
+        name=name,
+        namespace=namespace,
+        spec=spec,
+        owner=owner,
+    )
     try:
-        custom_objects_api.create_namespaced_custom_object(
+        custom_api.create_namespaced_custom_object(
             namespace=namespace,
             group=GROUP,
             version=VERSION,
@@ -61,7 +62,7 @@ def reconcile_gateway(name: str, namespace: str, spec: dict, owner: V1OwnerRefer
         logger.info(f"HTTPRoute: {name} created")
     except ApiException as e:
         if e.status == 409:
-            custom_objects_api.patch_namespaced_custom_object(
+            custom_api.patch_namespaced_custom_object(
                 name=name,
                 namespace=namespace,
                 group=GROUP,

@@ -98,3 +98,7 @@ def service(base_spec, owner_reference):
         spec=base_spec,
         owner=owner_reference,
     )
+
+@pytest.fixture
+def mock_logger():
+    return MagicMock()

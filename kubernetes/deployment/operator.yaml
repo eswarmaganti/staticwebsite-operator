@@ -29,9 +29,18 @@ spec:
         app.kubernetes.io/component: controller
     spec:
       serviceAccountName: staticwebsite-operator
+      automountServiceAccountToken: true
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: staticwebsite
-          image: kubernetes.io/eswarmaganti/sw-operator:v1alpha1
+          image: docker.io/eswarmaganti/sw-operator:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
 
@@ -40,6 +49,7 @@ spec:
               drop:
                 - ALL
             readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
             runAsNonRoot: true
             runAsUser: 1000
 
