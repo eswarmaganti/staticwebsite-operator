@@ -6,7 +6,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: staticwebsite-operator
-  namespace: operators
   labels:
     app.kubernetes.io/name: staticwebsite-operator
     app.kubernetes.io/version: v1alpha1
