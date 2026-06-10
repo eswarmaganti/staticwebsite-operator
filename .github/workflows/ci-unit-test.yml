@@ -1,4 +1,4 @@
-name: CI Workflow to perform unit tests
+name: ci-unit-test
 run-name: CI Unit Test workflow triggered by ${{github.actor}}
 on:
   pull_request:

@@ -29,10 +29,14 @@ jobs:
           chmod 600 $HOME/.kube/config
 
       - name: Create the Kubernetes namespace
-        run: kubectl create namespace staticwebsite-operator
+        run: |
+          kubectl create namespace \ 
+            staticwebsite-operator \
+          --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy the Kubernetes Secret
         run: |
+          k
           kubectl create secret docker-registry staticwebsite-operator \
             --docker-username=${{ vars.DOCKERHUB_USERNAME }} \
             --docker-password=${{secrets.DOCKERHUB_TOKEN}} \
