@@ -35,7 +35,6 @@ jobs:
 
       - name: Deploy the Kubernetes Secret
         run: |
-          k
           kubectl create secret docker-registry staticwebsite-operator \
             --docker-username=${{ vars.DOCKERHUB_USERNAME }} \
             --docker-password=${{secrets.DOCKERHUB_TOKEN}} \
