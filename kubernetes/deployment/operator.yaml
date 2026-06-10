@@ -16,7 +16,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      kubernetes.io/name: staticwebsite-operator
+      app.kubernetes.io/name: staticwebsite-operator
   template:
     metadata:
       name: staticwebsite-pod
