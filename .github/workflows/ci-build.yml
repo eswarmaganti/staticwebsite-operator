@@ -50,6 +50,7 @@ jobs:
           context: .
           push: false
           load: true
+          platforms: linux/arm64, linux/amd64
           tags: docker.io/${{ github.repository_owner }}/${{ vars.IMAGE_NAME }}:${{github.run_number}}
 
       - name: Run Trivy Image Scan
@@ -65,6 +66,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/arm64, linux/amd64
           tags: |
             docker.io/${{ github.repository_owner }}/${{ vars.IMAGE_NAME }}:${{ github.run_number }}
             docker.io/${{ github.repository_owner }}/${{ vars.IMAGE_NAME }}:latest
