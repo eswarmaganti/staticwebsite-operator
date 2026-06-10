@@ -65,7 +65,7 @@ rules:
 
   # Rule for Gateway resources
   - apiGroups:
-      - gateway.networking.kubernetes.io
+      - gateway.networking.k8s.io
     resources:
       - gateways
       - httproutes
@@ -86,3 +86,11 @@ rules:
     verbs:
       - create
       - patch
+
+  # Rule for StaticWebsite finalizers
+  - apiGroups:
+      - platform.eswar.dev
+    resources:
+      - staticwebsites/finalizers
+    verbs:
+      - update

@@ -15,7 +15,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: staticwebsite-operator
-    namespace: operators
+    namespace: staticwebsite-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
