@@ -30,8 +30,7 @@ jobs:
 
       - name: Create the Kubernetes namespace
         run: |
-          kubectl create namespace \ 
-            staticwebsite-operator \
+          kubectl create namespace staticwebsite-operator \
           --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy the Kubernetes Secret
