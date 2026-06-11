@@ -1,7 +1,7 @@
-from kubernetes.client import V1OwnerReference, ApiException
+from kubernetes.client import V1OwnerReference, ApiException, CustomObjectsApi
 from sw_operator.builders.gateway import build_httproute, build_gateway
-from sw_operator.clients.kubernetes import custom_api
 import kopf
+
 # static constants
 GROUP = "gateway.networking.k8s.io"
 VERSION = "v1"
@@ -20,7 +20,8 @@ def reconcile_gateway_resource(name: str, namespace: str, spec: dict, owner: V1O
         owner=owner,
     )
     try:
-        custom_api.create_namespaced_custom_object(
+        api = CustomObjectsApi()
+        api.create_namespaced_custom_object(
             namespace=namespace,
             group=GROUP,
             version=VERSION,
@@ -31,7 +32,7 @@ def reconcile_gateway_resource(name: str, namespace: str, spec: dict, owner: V1O
 
     except ApiException as e:
         if e.status == 409:
-            custom_api.patch_namespaced_custom_object(
+            api.patch_namespaced_custom_object(
                 name=name,
                 namespace=namespace,
                 group=GROUP,
@@ -52,7 +53,7 @@ def reconcile_httproute_resource(name: str, namespace: str, spec: dict, owner: V
         owner=owner,
     )
     try:
-        custom_api.create_namespaced_custom_object(
+        api.create_namespaced_custom_object(
             namespace=namespace,
             group=GROUP,
             version=VERSION,
@@ -62,7 +63,7 @@ def reconcile_httproute_resource(name: str, namespace: str, spec: dict, owner: V
         logger.info(f"HTTPRoute: {name} created")
     except ApiException as e:
         if e.status == 409:
-            custom_api.patch_namespaced_custom_object(
+            api.patch_namespaced_custom_object(
                 name=name,
                 namespace=namespace,
                 group=GROUP,

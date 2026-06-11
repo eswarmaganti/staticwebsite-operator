@@ -1,5 +1,5 @@
-from sw_operator.clients.kubernetes import apps_v1
-from kubernetes.client import ApiException
+
+from kubernetes.client import ApiException, AppsV1Api
 from sw_operator.builders.deployment import build_deployment
 import kopf
 
@@ -25,9 +25,10 @@ def reconcile_deployment(name, spec, namespace, owner, logger ):
         owner=owner
     )
 
+    api = AppsV1Api()
     try:
         # Create the desired deployment
-        apps_v1.create_namespaced_deployment(
+        api.create_namespaced_deployment(
             namespace=namespace,
             body=desired
         )
@@ -36,7 +37,7 @@ def reconcile_deployment(name, spec, namespace, owner, logger ):
         # if the resource already exists in cluster patch it
         # Using the strategic merge patch: k8s compute the diff server-side
         if e.status == 409:
-            apps_v1.patch_namespaced_deployment(
+            api.patch_namespaced_deployment(
                 name=name,
                 namespace=namespace,
                 body=desired

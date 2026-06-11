@@ -1,4 +1,4 @@
-from sw_operator.clients.kubernetes import client
+from kubernetes import client
 
 # utility function to build an owner reference for kubernetes objects
 def build_owner_reference(body):

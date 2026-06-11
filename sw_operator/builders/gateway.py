@@ -1,5 +1,5 @@
-from sw_operator.clients.kubernetes import client
 from kubernetes.client import V1OwnerReference
+from kubernetes import client
 
 
 def build_gateway(name: str, namespace: str, spec: dict, owner: V1OwnerReference) -> dict:

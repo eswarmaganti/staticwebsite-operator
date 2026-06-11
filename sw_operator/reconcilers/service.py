@@ -1,5 +1,4 @@
-from kubernetes.client import ApiException
-from sw_operator.clients.kubernetes import core_v1
+from kubernetes.client import ApiException, CoreV1Api
 from sw_operator.builders.service import build_service
 import kopf
 
@@ -22,16 +21,16 @@ def reconcile_service(name, namespace, spec, owner, logger) -> None:
         spec=spec,
         owner=owner
     )
-
+    api = CoreV1Api()
     try:
-        core_v1.create_namespaced_service(
+        api.create_namespaced_service(
             namespace=namespace,
             body=desired
         )
         logger.info(f'Service: {name} created')
     except ApiException as e:
         if e.status == 409:
-            core_v1.patch_namespaced_service(
+            api.patch_namespaced_service(
                 name=name,
                 namespace=namespace,
                 body=desired

@@ -1,8 +1,5 @@
-from kopf.on import probe
-from oauthlib.oauth2 import Client
-
-from sw_operator.clients.kubernetes import client
 from kubernetes.client import V1Deployment, V1OwnerReference
+from kubernetes import config, client
 
 
 # utility function to create the deployment specification

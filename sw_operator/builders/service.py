@@ -1,4 +1,4 @@
-from sw_operator.clients.kubernetes import client
+from kubernetes import client
 from kubernetes.client import V1Service, V1OwnerReference
 
 # utility function to build the service manifest
