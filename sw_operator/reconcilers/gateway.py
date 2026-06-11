@@ -52,6 +52,7 @@ def reconcile_httproute_resource(name: str, namespace: str, spec: dict, owner: V
         spec=spec,
         owner=owner,
     )
+    api = CustomObjectsApi()
     try:
         api.create_namespaced_custom_object(
             namespace=namespace,

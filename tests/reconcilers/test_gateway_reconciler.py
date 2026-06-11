@@ -22,7 +22,7 @@ class TestGatewayReconciler:
         mock_gateway.assert_called_once()
         mock_httproute.assert_called_once()
 
-    @patch('sw_operator.reconcilers.gateway.custom_api')
+    @patch('sw_operator.reconcilers.gateway.CustomObjectsApi')
     def test_create_gateway_when_not_exist(self, mock_custom_api, base_spec, owner_reference, mock_logger):
         """
         test the gateway reconciler for creating the gateway when not exist
@@ -32,7 +32,9 @@ class TestGatewayReconciler:
         :param mock_logger:
         :return:
         """
-        mock_custom_api.create_namespaced_custom_object.return_value = MagicMock()
+        api = mock_custom_api()
+
+        api.create_namespaced_custom_object.return_value = MagicMock()
 
         reconcile_gateway_resource(
             name="portfolio",
@@ -42,13 +44,13 @@ class TestGatewayReconciler:
             logger=mock_logger
         )
 
-        mock_custom_api.create_namespaced_custom_object.assert_called_once()
+        api.create_namespaced_custom_object.assert_called_once()
 
         # assert the call_args
-        call_args = mock_custom_api.create_namespaced_custom_object.call_args
+        call_args = api.create_namespaced_custom_object.call_args
         assert call_args[1]['namespace'] == 'test'
 
-    @patch('sw_operator.reconcilers.gateway.custom_api')
+    @patch('sw_operator.reconcilers.gateway.CustomObjectsApi')
     def test_create_httproute_when_not_exist(self, mock_custom_api, base_spec, owner_reference, mock_logger):
         """
         test the gateway reconciler for creating the httproute when not exist
@@ -58,7 +60,9 @@ class TestGatewayReconciler:
         :param mock_logger:
         :return:
         """
-        mock_custom_api.create_namespaced_custom_object.return_value = MagicMock()
+        api = mock_custom_api()
+
+        api.create_namespaced_custom_object.return_value = MagicMock()
         reconcile_httproute_resource(
             name="portfolio",
             namespace="test",
@@ -66,12 +70,12 @@ class TestGatewayReconciler:
             owner=owner_reference,
             logger=mock_logger
         )
-        mock_custom_api.create_namespaced_custom_object.assert_called_once()
+        api.create_namespaced_custom_object.assert_called_once()
 
-        call_args = mock_custom_api.create_namespaced_custom_object.call_args
+        call_args = api.create_namespaced_custom_object.call_args
         assert call_args[1]['namespace'] == 'test'
 
-    @patch('sw_operator.reconcilers.gateway.custom_api')
+    @patch('sw_operator.reconcilers.gateway.CustomObjectsApi')
     def test_patch_gateway_when_exist(self, mock_custom_api, base_spec, owner_reference, mock_logger):
         """
         test the gateway reconciler for patching the gateway resource
@@ -81,8 +85,10 @@ class TestGatewayReconciler:
         :param mock_logger:
         :return:
         """
-        mock_custom_api.create_namespaced_custom_object.side_effect = ApiException(409)
-        mock_custom_api.patch_namespaced_custom_object.return_value = MagicMock()
+        api = mock_custom_api()
+
+        api.create_namespaced_custom_object.side_effect = ApiException(409)
+        api.patch_namespaced_custom_object.return_value = MagicMock()
 
         reconcile_gateway_resource(
             name="portfolio",
@@ -92,9 +98,9 @@ class TestGatewayReconciler:
             logger=mock_logger
         )
 
-        mock_custom_api.create_namespaced_custom_object.assert_called_once()
+        api.create_namespaced_custom_object.assert_called_once()
 
-    @patch('sw_operator.reconcilers.gateway.custom_api')
+    @patch('sw_operator.reconcilers.gateway.CustomObjectsApi')
     def test_patch_httproute_when_exist(self, mock_custom_api, base_spec, owner_reference, mock_logger):
         """
         test the gateway reconciler for patching the httproute resource
@@ -104,9 +110,10 @@ class TestGatewayReconciler:
         :param mock_logger:
         :return:
         """
+        api = mock_custom_api()
 
-        mock_custom_api.create_namespaced_custom_object.side_effect = ApiException(409)
-        mock_custom_api.patch_namespaced_custom_object.return_value = MagicMock()
+        api.create_namespaced_custom_object.side_effect = ApiException(409)
+        api.patch_namespaced_custom_object.return_value = MagicMock()
 
         reconcile_httproute_resource(
             name="portfolio",
@@ -116,11 +123,13 @@ class TestGatewayReconciler:
             logger=mock_logger
         )
 
-        mock_custom_api.create_namespaced_custom_object.assert_called_once()
+        api.create_namespaced_custom_object.assert_called_once()
 
-    @patch('sw_operator.reconcilers.gateway.custom_api')
+    @patch('sw_operator.reconcilers.gateway.CustomObjectsApi')
     def test_gateway_resource_exception_handling(self, mock_custom_api, base_spec, owner_reference, mock_logger):
-        mock_custom_api.create_namespaced_custom_object.side_effect = ApiException(500)
+        api = mock_custom_api()
+
+        api.create_namespaced_custom_object.side_effect = ApiException(500)
 
         with pytest.raises(kopf.TemporaryError):
             reconcile_gateway_resource(
@@ -131,9 +140,11 @@ class TestGatewayReconciler:
                 logger=mock_logger
             )
 
-    @patch('sw_operator.reconcilers.gateway.custom_api')
+    @patch('sw_operator.reconcilers.gateway.CustomObjectsApi')
     def test_httproute_resource_exception_handling(self, mock_custom_api, base_spec, owner_reference, mock_logger):
-        mock_custom_api.create_namespaced_custom_object.side_effect = ApiException(500)
+        api = mock_custom_api()
+
+        api.create_namespaced_custom_object.side_effect = ApiException(500)
 
         with pytest.raises(kopf.TemporaryError):
             reconcile_httproute_resource(
