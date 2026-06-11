@@ -1,5 +1,4 @@
-from kubernetes.client import ApiException
-from sw_operator.clients.kubernetes import client
+from kubernetes.client import ApiException, CustomObjectsApi
 from sw_operator.config import GROUP, VERSION, PLURAL
 import kopf
 
@@ -44,8 +43,8 @@ def reconcile_status(name, namespace, body, logger) -> None:
 
     # Reconcile the CR status
     try:
-        custom_objects_api = client.CustomObjectsApi()
-        custom_objects_api.patch_namespaced_custom_object(
+        api = CustomObjectsApi()
+        api.patch_namespaced_custom_object(
             group=GROUP,
             version=VERSION,
             plural=PLURAL,
