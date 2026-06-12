@@ -2,7 +2,7 @@
 from kubernetes.client import ApiException, AppsV1Api
 from sw_operator.builders.deployment import build_deployment
 import kopf
-
+from sw_operator.utils.k8s import load_config
 
 # function to handle the reconciliation of deployment
 def reconcile_deployment(name, spec, namespace, owner, logger ):
@@ -25,6 +25,7 @@ def reconcile_deployment(name, spec, namespace, owner, logger ):
         owner=owner
     )
 
+    load_config()
     api = AppsV1Api()
     try:
         # Create the desired deployment

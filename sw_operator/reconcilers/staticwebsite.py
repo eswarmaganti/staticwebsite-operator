@@ -1,6 +1,5 @@
 from sw_operator.reconcilers.deployment import reconcile_deployment
 from sw_operator.reconcilers.service import reconcile_service
-from sw_operator.reconcilers.status import reconcile_status
 from sw_operator.builders.owner_reference import build_owner_reference
 from sw_operator.reconcilers.gateway import reconcile_gateway
 
