@@ -6,6 +6,6 @@ on:
     types: [opened, reopened, synchronize, edited]
 jobs:
   test:
-    uses: ./.workflows/reusable-unit-tests.yml
+    uses: ./.github/workflows/reusable-unit-tests.yml
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
