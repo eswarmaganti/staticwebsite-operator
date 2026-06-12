@@ -32,10 +32,10 @@ spec:
       securityContext:
         runAsUser: 1000
         runAsNonRoot: true
-#        runAsGroup: 1000
-#        fsGroup: 1000
-#        seccompProfile:
-#          type: RuntimeDefault
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: staticwebsite
           image: docker.io/eswarmaganti/sw-operator:latest
@@ -44,11 +44,11 @@ spec:
             - containerPort: 80
 
           securityContext:
-#            capabilities:
-#              drop:
-#                - ALL
-#            readOnlyRootFilesystem: true
-#            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
             runAsNonRoot: true
             runAsUser: 1000
 
