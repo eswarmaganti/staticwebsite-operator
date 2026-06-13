@@ -25,7 +25,7 @@ jobs:
         run: |
           echo "Setting up the kubeconfig"
           mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > $HOME/.kube/config
+          echo "${{ secrets.CD_KUBECONFIG }}" | base64 -d > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
 
       - name: Create the Kubernetes namespace
