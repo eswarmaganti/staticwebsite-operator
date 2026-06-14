@@ -1,10 +1,16 @@
-name: ci-unit-test
-run-name: CI Unit Test workflow triggered by ${{github.actor}}
+name: Reusable unit tests
 on:
-  pull_request:
-    types: [opened, reopened, synchronize, edited]
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: "3.12"
+        required: false
+    secrets:
+      CODECOV_TOKEN:
+        required: true
 jobs:
-  CI-Unit-Tests:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Code checkout
@@ -19,7 +25,7 @@ jobs:
       - name: Run Python Pytest Unit Tests
         run: python3 -m pytest --cov=sw_operator --cov-report=xml
 
-      - name: Test coverage badge
+      - name: Upload coverage Report
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

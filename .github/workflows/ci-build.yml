@@ -5,29 +5,17 @@ on:
     branches:
       - main
 jobs:
-  CI-Build:
+  test:
+    uses: ./.github/workflows/reusable-unit-tests.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build-scan-push:
     runs-on: ubuntu-latest
+    needs: test                                 # run the job when test job is successful
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v6
-
-      - name: Setup Python Environment
-        uses: actions/setup-python@v5
-
-      - name: Install the python dependencies
-        run: |
-          python3 -m pip install -r requirements.txt -r requirements-dev.txt
-
-      - name: Run Python Unit Tests
-        run: python3 -m pytest --cov=sw_operator --cov-report=xml
-
-      - name: Test Coverage Badge
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-
-      - name: Static Code Analysis
-        run: echo "Running Static Code Analysis"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

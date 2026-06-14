@@ -1,0 +1,11 @@
+#
+# The service account token used by CD workflow to authenticate to cluster and manages the resources in staticwebsite-operator namespace
+#
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-actions-cd
+  namespace: staticwebsite-operator
+  annotations:
+    kubernetes.io/service-account.name: github-actions-cd
+type: kubernetes.io/service-account-token

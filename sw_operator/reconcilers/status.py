@@ -2,6 +2,9 @@ from kubernetes.client import ApiException, CustomObjectsApi
 from sw_operator.config import GROUP, VERSION, PLURAL
 import kopf
 
+from sw_operator.utils.k8s import load_config
+
+
 def reconcile_status(name, namespace, body, logger) -> None:
     """
     Function to reconcile the status of the custom resource StaticWebsite by listening on deployment 'status.readyReplicas' field changes
@@ -43,6 +46,7 @@ def reconcile_status(name, namespace, body, logger) -> None:
 
     # Reconcile the CR status
     try:
+        load_config()
         api = CustomObjectsApi()
         api.patch_namespaced_custom_object(
             group=GROUP,

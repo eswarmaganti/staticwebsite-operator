@@ -1,7 +1,7 @@
 from kubernetes.client import V1OwnerReference, ApiException, CustomObjectsApi
 from sw_operator.builders.gateway import build_httproute, build_gateway
 import kopf
-
+from sw_operator.utils.k8s import load_config
 # static constants
 GROUP = "gateway.networking.k8s.io"
 VERSION = "v1"
@@ -20,7 +20,9 @@ def reconcile_gateway_resource(name: str, namespace: str, spec: dict, owner: V1O
         owner=owner,
     )
     try:
+        load_config()
         api = CustomObjectsApi()
+
         api.create_namespaced_custom_object(
             namespace=namespace,
             group=GROUP,
@@ -52,7 +54,10 @@ def reconcile_httproute_resource(name: str, namespace: str, spec: dict, owner: V
         spec=spec,
         owner=owner,
     )
+
+    load_config()
     api = CustomObjectsApi()
+
     try:
         api.create_namespaced_custom_object(
             namespace=namespace,

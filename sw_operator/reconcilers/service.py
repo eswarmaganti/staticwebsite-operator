@@ -1,6 +1,7 @@
 from kubernetes.client import ApiException, CoreV1Api
 from sw_operator.builders.service import build_service
 import kopf
+from sw_operator.utils.k8s import load_config
 
 # function to reconcile the service
 def reconcile_service(name, namespace, spec, owner, logger) -> None:
@@ -21,7 +22,10 @@ def reconcile_service(name, namespace, spec, owner, logger) -> None:
         spec=spec,
         owner=owner
     )
+
+    load_config()
     api = CoreV1Api()
+
     try:
         api.create_namespaced_service(
             namespace=namespace,

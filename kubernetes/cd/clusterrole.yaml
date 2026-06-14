@@ -1,0 +1,64 @@
+#
+# The cluster role defining the permissions to manage the resources
+#
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: github-actions-cd
+rules:
+  # Apply CRDs
+  - apiGroups:
+      - "apiextensions.k8s.io"
+    resources:
+      - "customresourcedefinitions"
+    verbs:
+      - create
+      - get
+      - list
+      - delete
+      - patch
+      - update
+
+  # Apply RBAC manifests
+  - apiGroups:
+      - "rbac.authorization.k8s.io"
+    resources:
+      - "clusterroles"
+      - "clusterrolebindings"
+    verbs:
+      - create
+      - list
+      - get
+      - update
+      - patch
+      - delete
+
+  # Apply Deployments, ServiceAccount, Secrets, ConfigMaps, Namespaces
+  - apiGroups:
+      - "apps"
+    resources:
+      - "deployments"
+      - "statefulsets"
+    verbs:
+      - create
+      - list
+      - get
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - "serviceaccounts"
+      - "secrets"
+      - "configmaps"
+      - "namespaces"
+      - "services"
+      - "pods"
+    verbs:
+      - create
+      - get
+      - list
+      - update
+      - patch
+      - delete

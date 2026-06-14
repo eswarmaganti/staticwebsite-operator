@@ -1,0 +1,11 @@
+name: CI PR Checks
+run-name: PR Checks for ${{ github.head_ref }} by ${{ github.actor }}
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, reopened, synchronize, edited]
+jobs:
+  test:
+    uses: ./.github/workflows/reusable-unit-tests.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
