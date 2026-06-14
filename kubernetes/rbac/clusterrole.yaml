@@ -13,94 +13,45 @@ metadata:
     app.kubernetes.io/part-of: staticwebsite-platform
     app.kubernetes.io/component: controller
 rules:
-  # Rule for StaticWebsite CR
-  - apiGroups:
-      - platform.eswar.dev
-    resources:
-      - staticwebsites
-    verbs:
-      - get
-      - list
-      - watch
-      - patch
-      - update
+  # Watch and patch StaticWebsite CRs — core operator permissions
+  - apiGroups: [ "platform.eswar.dev" ]
+    resources: [ "staticwebsites" ]
+    verbs: [ "get", "list", "watch", "patch", "update", "delete" ]
 
-  # Rule for StaticWebsite Status subresource
-  - apiGroups:
-      - platform.eswar.dev
-    resources:
-      - staticwebsites/status
-    verbs:
-      - get
-      - patch
-      - update
+  ## Patch the CR's status subresource independently
+  - apiGroups: [ "platform.eswar.dev" ]
+    resources: [ "staticwebsites/status" ]
+    verbs: [ "get", "patch", "update"]
 
-  # Rule for deployments
-  - apiGroups:
-      - apps
-    resources:
-      - deployments
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+  # Manage finalizers on the CR
+  - apiGroups: [ "platform.eswar.dev" ]
+    resources: [ "staticwebsites/finalizers" ]
+    verbs: [ "update" ]
 
-  # Rule for services
-  - apiGroups:
-      - ""
-    resources:
-      - services
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+  # Full CRUD on child resources the operator provisions
+  - apiGroups: [ "apps" ]
+    resources: [ "deployments" ]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
 
-  # Rule for Gateway resources
-  - apiGroups:
-      - gateway.networking.k8s.io
-    resources:
-      - gateways
-      - httproutes
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - patch
-      - delete
+  - apiGroups: [ "" ]
+    resources: [ "services" ]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
 
-  #Rule for events
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - create
-      - patch
+  - apiGroups: [ "gateway.networking.k8s.io" ]
+    resources: [ "gateways", "httproutes" ]
+    verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
 
-  # Rule for StaticWebsite finalizers
-  - apiGroups:
-      - platform.eswar.dev
-    resources:
-      - staticwebsites/finalizers
-    verbs:
-      - update
+  # Post Kubernetes Events (visible in kubectl describe)
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: [ "create", "patch" ]
 
-  # kopf needs this to discover and watch your CRD at startup
+  # Kopf discovers and validates your CRD schema at startup
   - apiGroups: [ "apiextensions.k8s.io" ]
     resources: [ "customresourcedefinitions" ]
     verbs: [ "get", "list", "watch" ]
 
-  # kopf needs this for leader election
+  # Kopf uses Leases for leader election when multiple replicas run
   - apiGroups: [ "coordination.k8s.io" ]
     resources: [ "leases" ]
     verbs: [ "get", "list", "watch", "create", "update", "patch", "delete" ]
