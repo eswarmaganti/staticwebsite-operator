@@ -6,6 +6,9 @@ kind: Secret
 metadata:
   name: github-actions-cd
   namespace: staticwebsite-operator
+  labels:
+    app.kubernetes.io/name: github-actions-cd
+    app.kubernetes.io/component: cd-pipeline
   annotations:
     kubernetes.io/service-account.name: github-actions-cd
 type: kubernetes.io/service-account-token

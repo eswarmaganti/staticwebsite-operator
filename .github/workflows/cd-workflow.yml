@@ -28,12 +28,12 @@ jobs:
           echo "${{ secrets.CD_KUBECONFIG }}" | base64 -d > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
 
-      - name: Create the Kubernetes namespace
+      - name: Create the operator namespace
         run: |
           kubectl create namespace staticwebsite-operator \
           --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Deploy the Kubernetes Secret
+      - name: Deploy the registry pull secret
         run: |
           kubectl create secret docker-registry staticwebsite-operator \
             --docker-username=${{ vars.DOCKERHUB_USERNAME }} \
@@ -55,7 +55,12 @@ jobs:
           
           echo "Applying the operator deployment manifest"
           kubectl apply -f kubernetes/deployment/
-          
+
+      - name: Verify operator rollout
+        run: |
+          kubectl rollout status deployment/staticwebsite-operator \
+          -n staticwebsite-operator \
+          --timeout=120s
           
           
           
